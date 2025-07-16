@@ -1,90 +1,74 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 
-char *line = NULL;
-size_t len = 0;
-ssize_t read;
-
-while ((read = getline(&line, &len, stdin)) != -1)
-{
-    char *argv[2];
-
-    argv[0] = line;
-    argv[1] = NULL;
-
-    if (fork() == 0)
-    {
-        execvp(argv[0], argv);
-        perror("execvp");
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        wait(NULL);
-    }
-}
-
-extern char **environ;
-
-#define BUFFER_SIZE 1024
-
-void display_prompt(void)
-{
-	write(STDOUT_FILENO, "#cisfun$ ", 9);
-}
-
+/**
+ * main - Entry point of the simple shell
+ *
+ * Return: Always 0 on success
+ */
 int main(void)
 {
 	char *line = NULL;
 	size_t len = 0;
-	ssize_t read;
+	ssize_t nread;
 	pid_t pid;
 	int status;
 
 	while (1)
 	{
-		display_prompt();
+		/* Print the prompt */
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "($) ", 4);
 
-		read = getline(&line, &len, stdin);
-		if (read == -1)  /* Handles EOF (Ctrl+D) */
+		/* Read input */
+		nread = getline(&line, &len, stdin);
+
+		if (nread == -1)
 		{
-			write(STDOUT_FILENO, "\n", 1);
+			free(line);
+			if (isatty(STDIN_FILENO))
+				write(STDOUT_FILENO, "\n", 1);
 			break;
 		}
 
-		/* Remove newline character */
-		if (line[read - 1] == '\n')
-			line[read - 1] = '\0';
+		/* Remove trailing newline */
+		if (line[nread - 1] == '\n')
+			line[nread - 1] = '\0';
 
-		if (strlen(line) == 0)
-			continue;
+		/* Exit command */
+		if (strcmp(line, "exit") == 0)
+			break;
 
+		/* Fork to execute */
 		pid = fork();
 		if (pid == -1)
 		{
 			perror("fork");
 			continue;
 		}
-
-		if (pid == 0)  /* Child process */
+		if (pid == 0)
 		{
-			char *argv[] = {line, NULL};
+			char *argv[2];
 
-			if (execve(line, argv, environ) == -1)
+			argv[0] = line;
+			argv[1] = NULL;
+
+			if (execvp(argv[0], argv) == -1)
 			{
-				perror("./shell");
+				perror("execvp");
 				exit(EXIT_FAILURE);
 			}
 		}
-		else  /* Parent process */
+		else
 		{
-			wait(&status);
+			waitpid(pid, &status, 0);
 		}
 	}
 
 	free(line);
-	return 0;
+	return (0);
 }
