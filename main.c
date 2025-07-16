@@ -5,6 +5,13 @@
 
 #define MAX_LINE 1024
 
+/**
+ * main - Entry point of the simple shell program
+ * @argc: Argument count
+ * @argv: Argument vector
+ *
+ * Return: 0 on success, or error code
+ */
 int main(void)
 {
     char *line = NULL;

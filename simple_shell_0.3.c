@@ -9,7 +9,10 @@
 
 char *find_command_path(char *command);
 void run_command(char **args);
-
+/**
+ * main - Entry point for the shell program
+ * Return: 0 on success
+ */
 int main(void)
 {
     char *line = NULL;
@@ -50,7 +53,11 @@ int main(void)
     free(line);
     return 0;
 }
-
+/**
+ * run_command - Executes a command entered by the user
+ * @input: the full input line from the user
+ * Return: 1 if the shell should continue running, 0 otherwise
+ */
 void run_command(char **args)
 {
     pid_t pid;
@@ -97,7 +104,11 @@ void run_command(char **args)
         perror("fork");
     }
 }
-
+/**
+ * find_command_path - Finds the full path of a command in the PATH
+ * @command: The command name
+ * Return: Pointer to the full path string or NULL if not found
+ */
 char *find_command_path(char *command)
 {
     char *path = getenv("PATH");
