@@ -13,8 +13,10 @@ int main(void)
     size_t len = 0;
     ssize_t read;
     char *args[2];
-
-    while (1)
+/* Fork and execve */
+        pid_t pid = fork();
+ 
+     	while (1)
     {
         /* Display prompt */
         write(STDOUT_FILENO, "#cisfun$ ", 9);
@@ -40,8 +42,6 @@ int main(void)
         args[0] = line;
         args[1] = NULL;
 
-        /* Fork and execve */
-        pid_t pid = fork();
 
         if (pid == -1)
         {
@@ -63,7 +63,7 @@ int main(void)
             wait(NULL);
         }
     }
-
+execve(cmd_path, args, environ);
     free(line);
     return 0;
 }
