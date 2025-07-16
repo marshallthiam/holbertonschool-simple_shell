@@ -4,6 +4,29 @@
 #include <string.h>
 #include <sys/wait.h>
 
+char *line = NULL;
+size_t len = 0;
+ssize_t read;
+
+while ((read = getline(&line, &len, stdin)) != -1)
+{
+    char *argv[2];
+
+    argv[0] = line;
+    argv[1] = NULL;
+
+    if (fork() == 0)
+    {
+        execvp(argv[0], argv);
+        perror("execvp");
+        exit(EXIT_FAILURE);
+    }
+    else
+    {
+        wait(NULL);
+    }
+}
+
 extern char **environ;
 
 #define BUFFER_SIZE 1024
