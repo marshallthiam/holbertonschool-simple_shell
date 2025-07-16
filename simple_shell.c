@@ -2,18 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
 
 /**
- * main - Entry point of the simple shell
+ * main - Simple shell that executes commands without arguments.
  *
- * Return: Always 0 on success
+ * Return: Always 0.
  */
-char *argv[2];  /* Déclare le tableau avec deux éléments */
-argv[0] = line;
-argv[1] = NULL;
-
 int main(void)
 {
 	char *line = NULL;
@@ -21,41 +15,32 @@ int main(void)
 	ssize_t nread;
 	pid_t pid;
 	int status;
+	char *argv[2]; /* Tableau d'arguments pour execvp */
 
 	while (1)
 	{
-		/* Print the prompt */
-		if (isatty(STDIN_FILENO))
-			write(STDOUT_FILENO, "($) ", 4);
-
-		/* Read input */
+		printf("$ ");
 		nread = getline(&line, &len, stdin);
-
 		if (nread == -1)
 		{
-			free(line);
-			if (isatty(STDIN_FILENO))
-				write(STDOUT_FILENO, "\n", 1);
+			perror("getline");
 			break;
 		}
 
-		/* Remove trailing newline */
+		/* Supprime le caractère de nouvelle ligne */
 		if (line[nread - 1] == '\n')
 			line[nread - 1] = '\0';
 
-		/* Exit command */
-		if (strcmp(line, "exit") == 0)
-			break;
-
-		/* Fork to execute */
 		pid = fork();
 		if (pid == -1)
 		{
 			perror("fork");
-			continue;
+			break;
 		}
-		if (pid == 0)
+		else if (pid == 0)
 		{
+			argv[0] = line;
+			argv[1] = NULL;
 
 			if (execvp(argv[0], argv) == -1)
 			{
@@ -65,7 +50,7 @@ int main(void)
 		}
 		else
 		{
-			waitpid(pid, &status, 0);
+			wait(&status);
 		}
 	}
 
