@@ -10,6 +10,10 @@
  *
  * Return: Always 0 on success
  */
+char *argv[2];  /* Déclare le tableau avec deux éléments */
+argv[0] = line;
+argv[1] = NULL;
+
 int main(void)
 {
 	char *line = NULL;
@@ -52,10 +56,6 @@ int main(void)
 		}
 		if (pid == 0)
 		{
-			char *argv[2];
-
-			argv[0] = line;
-			argv[1] = NULL;
 
 			if (execvp(argv[0], argv) == -1)
 			{
