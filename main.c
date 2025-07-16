@@ -1,51 +1,43 @@
-/* main.c */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+
+#define MAX_LINE 1024
 
 int main(void)
 {
     char *line = NULL;
     size_t len = 0;
     ssize_t nread;
-    pid_t pid;
 
     while (1)
     {
-        printf("$ ");
+        printf("$ "); /* prompt */
+
         nread = getline(&line, &len, stdin);
         if (nread == -1)
         {
-            break; /* CTRL+D */
+            perror("getline");
+            break;
         }
 
-        /* Enlever le \n */
-        line[strcspn(line, "\n")] = '\0';
+        /* Retirer le \n à la fin */
+        if (line[nread - 1] == '\n')
+            line[nread - 1] = '\0';
 
-        pid = fork();
-        if (pid == -1)
+        /* Construire argv */
+        char *argv[2];
+        argv[0] = line;
+        argv[1] = NULL;
+
+        /* Exécuter la commande */
+        if (execvp(argv[0], argv) == -1)
         {
-            perror("fork");
-            exit(EXIT_FAILURE);
+            perror("execvp");
         }
-        else if (pid == 0)
-        {
-            /* Processus enfant */
-            char *argv[] = {line, NULL};
-            if (execve(line, argv, NULL) == -1)
-            {
-                perror("execve");
-                exit(EXIT_FAILURE);
-            }
-        }
-        else
-        {
-            wait(NULL);
-        }
+
+        /* On sort uniquement si execvp échoue */
     }
 
     free(line);
